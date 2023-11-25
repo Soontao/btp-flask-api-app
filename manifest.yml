@@ -8,5 +8,7 @@ applications:
       FLASK_APP: app.py
       FLASK_ENV: production
     services:
-      # cf create-service  xsuaa application btp-sample-service-uaa
+      # cf cs  xsuaa application btp-sample-service-uaa
+      # cf cs application-logs lite btp-sample-service-log
       - btp-sample-service-uaa
+      - btp-sample-service-log
