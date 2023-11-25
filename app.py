@@ -1,38 +1,43 @@
-from flask import Flask, request, g
+from sanic import Request, Sanic, text, json
+from sanic.exceptions import SanicException, Unauthorized
 from sap import xssec
-from sap.cf_logging import flask_logging
+from sap.cf_logging import sanic_logging
 from cfenv import AppEnv
-import logging
+from sanic.log import logger
 
-app = Flask(__name__)
-app.config.from_prefixed_env()
-flask_logging.init(app, logging.INFO)
 env = AppEnv()
+app = Sanic(env.name if env.name else "app")
+app.config.FALLBACK_ERROR_FORMAT = "json"
+is_prod = app.config.get("ENV") == "production"
+
+if is_prod:
+    sanic_logging.init(app)
+    logger.info("cf logging enabled")
 
 
-if app.config.get("ENV") == "production":
-    logging.info("authentication enabled")
+if is_prod:
+    logger.info("authentication enabled")
 
-    @app.before_request
-    def authentication():
+    @app.on_request
+    def authentication(request: Request):
         uaa_service = env.get_service(label="xsuaa")
         auth_header = request.headers.get("Authorization")
         if not auth_header:
-            return {"error": "Token is missing"}, 401
+            raise Unauthorized("Token is missing")
 
-        # Extract the token from the Authorization header
-        try:
-            token_type, token = auth_header.split(" ")
-            if token_type.lower() != "bearer":
-                raise ValueError("Invalid token type")
-        except ValueError:
-            return {"error": "Invalid token format"}, 401
+        token_type, token = auth_header.split(" ")
+        if token_type.lower() != "bearer":
+            raise Unauthorized("Invalid token type")
 
-        g.security_context = xssec.create_security_context(
+        app.ctx.security_context = xssec.create_security_context(
             token, uaa_service.credentials
         )
 
 
 @app.route("/")
-def index():
-    return "Hello, World!"
+def index(request):
+    return json({"msg": "Hello BTP!"})
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)

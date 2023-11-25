@@ -5,8 +5,7 @@ applications:
     random-route: true
     disk_quota: 500MB
     env:
-      FLASK_APP: app.py
-      FLASK_ENV: production
+      SANIC_ENV: production
     services:
       # cf cs  xsuaa application btp-sample-service-uaa
       # cf cs application-logs lite btp-sample-service-log
