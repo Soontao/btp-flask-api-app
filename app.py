@@ -10,7 +10,7 @@ flask_logging.init(app, logging.INFO)
 env = AppEnv()
 
 
-if app.config.get("ENV") != "production":
+if app.config.get("ENV") == "production":
     logging.info("authentication enabled")
 
     @app.before_request
