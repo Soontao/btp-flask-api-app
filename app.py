@@ -9,6 +9,8 @@ env = AppEnv()
 
 @app.before_request
 def authentication():
+    if app.config.get("ENV") != 'production':
+        return
     uaa_service = env.get_service(label="xsuaa")
     auth_header = request.headers.get("Authorization")
     if not auth_header:

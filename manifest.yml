@@ -1,0 +1,13 @@
+---
+applications:
+  - name: btp-sample-service
+    memory: 250MB
+    random-route: true
+    disk_quota: 500MB
+    env:
+      FLASK_APP: app.py
+      FLASK_ENV: production
+    command: gunicorn -w 1 -b 0.0.0.0:8080 app:app
+
+services:
+  - btp-sample-service-uaa
